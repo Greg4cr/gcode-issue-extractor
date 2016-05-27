@@ -24,14 +24,22 @@ If you only want to retrieve issues that match a particular status (i.e., "New")
 
 Labels can also be filtered (i.e., `-l "Type-Defect"`)
 
+` -o <name of output file`
+
+Name of the CSV file to write to. `<project>-issues.csv` is the default value.
+
+` -q`
+
+"Quiet" mode. Uses PhantomJS as the browser instead of Firefox. This requires that PhantomJS be installed (see below). Useful if script is to be run on a server or other environment where windows cannot be opened. 
+
 If any other features are desired, please file an issue and I'll take a look.
 
 Requirements
 ------------------------
 
-This script is built using the Selenium Python bindings. If Pip is installed, the Selenium bindings can be installed using `pip install selenium`. Firefox is also required, as it is used to retrieve the desired information from the page. 
+This script is built using the Selenium Python bindings. If Pip is installed, the Selenium bindings can be installed using `pip install selenium`. 
 
-If you want to use this script on a server or an environment where windows cannot be opened, install PhantomJS (http://phantomjs.org/) and change all Firefox references in the script. 
+Selenium requires a web browser to perform page crawling. Firefox is the default. If you want to use this script on a server or an environment where windows cannot be opened, install PhantomJS (http://phantomjs.org/) and change all Firefox references in the script. 
 
 Reporting Faults
 ------------------------

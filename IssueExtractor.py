@@ -8,6 +8,8 @@
 # -p <project name, required>
 # -s <desired statuses, optional comma separated list>
 # -l <desired labels, optional  comma separated list>
+# -o <filename of CSV, optional, default = "project-issues.csv">
+# -q <use PhantomJS in Selenium calls, optional, default is Firefox>
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -22,9 +24,17 @@ import calendar
 
 class IssueExtractor(): 
 
-    labels=[]
-    status=[]
-    spreadsheet=["\"ID\",\"Status\",\"Priority\",\"Owner\",\"Summary\",\"AllLabels\",\"Stars\",\"Reporter\",\"Opened\",\"OpenedTimestamp\""]
+    labels = []
+    status = []
+    spreadsheet = ["\"ID\",\"Status\",\"Priority\",\"Owner\",\"Summary\",\"AllLabels\",\"Stars\",\"Reporter\",\"Opened\",\"OpenedTimestamp\""]
+    quiet = 0
+
+    # Set the browser to use
+    def setQuiet(self):
+        if self.quiet == 0:
+            self.quiet = 1
+        else: 
+            self.quiet = 0
 
     # Returns index of the issues for the project
     def getIssueIndex(self,project,pageNum):
@@ -49,7 +59,11 @@ class IssueExtractor():
     def getNumberOfPages(self,project):
         issueUrl = self.getIssueIndex(project,1)
         # Render the page
-        driver = webdriver.Firefox()  
+        if self.quiet == 0:
+            driver = webdriver.Firefox()  
+        else:
+            driver = webdriver.PhantomJS()
+
         driver.get(issueUrl)  
         time.sleep(1)  
         
@@ -69,7 +83,11 @@ class IssueExtractor():
         issueUrl = self.getIssueIndex(project,page)
 
         # Render the page
-        driver = webdriver.Firefox()  
+        if self.quiet == 0:
+            driver = webdriver.Firefox()  
+        else:
+            driver = webdriver.PhantomJS()
+
         driver.get(issueUrl)  
         time.sleep(1)  
  
@@ -112,7 +130,10 @@ class IssueExtractor():
             # If this is an issue we want, then add it to the CSV
             if statusOk and labelsOk:
                 print items[0].text
-                self.spreadsheet.append(self.scrapeIssue(project,items[0].text))
+                try:
+                    self.spreadsheet.append(self.scrapeIssue(project,items[0].text))
+                except:
+                    print("Unexpected issue:",sys.exc_info()[0])
 
         driver.quit()
 
@@ -120,7 +141,11 @@ class IssueExtractor():
         issueUrl = self.getIssueUrl(project,issueID)
 
         # Render the page
-        driver = webdriver.Firefox()  
+        if self.quiet == 0:
+            driver = webdriver.Firefox()  
+        else:
+            driver = webdriver.PhantomJS()
+
         driver.get(issueUrl)  
         time.sleep(5)  
  
@@ -156,6 +181,8 @@ class IssueExtractor():
         header = driver.find_element_by_id("gca-project-header")
         # Within that header, summart contained in <p class="ng-binding">
         summary = header.find_element_by_tag_name("p").text
+        # Remove all quotation marks from summary - can cause potential issues in CSV
+        summary.replace('"','')
 
         # Reporter and open date found in <div class="maia-col-8">
         body = driver.find_element_by_class_name("maia-col-8")
@@ -211,6 +238,7 @@ class IssueExtractor():
         timetuple=(year, month, day, 0, 0, 1)
         return calendar.timegm(timetuple)
 
+    # Write results to a CSV file
     def writeToCsv(self,outputFile):
         where = open(outputFile, 'w')
        
@@ -225,16 +253,17 @@ def main(argv):
     status = ""
     labels = ""
     outFile = ""
+    quiet = 0
 
     try:
-        opts, args = getopt.getopt(argv,"hp:s:l:o:")
+        opts, args = getopt.getopt(argv,"hp:s:l:o:q")
     except getopt.GetoptError:
-        print 'issueExtractor.py -p <project name> -s <desired statuses, comma separated> -l <desired labels, comma separated> -o <output filename>'
+        print 'issueExtractor.py -p <project name> -s <desired statuses, comma separated> -l <desired labels, comma separated> -o <output filename> -q <use PhantomJS as Selenium browser, Firefox is default>'
       	sys.exit(2)
   		
     for opt, arg in opts:
         if opt == "-h":
-            print 'issueExtractor.py -p <project name> -s <desired statuses, comma separated> -l <desired labels, comma separated> -o <output filename>'
+            print 'issueExtractor.py -p <project name> -s <desired statuses, comma separated> -l <desired labels, comma separated> -o <output filename> -q <use PhantomJS as Selenium browser, Firefox is default>'
             sys.exit()
       	elif opt == "-p":
             if arg == "":
@@ -247,9 +276,14 @@ def main(argv):
             labels = arg
         elif opt == "-o":
             outFile = arg
+        elif opt == "-q":
+            quiet = 1
 
     if outFile == "":
         outFile = project+"-issues.csv"
+
+    if quiet == 1:
+          extractor.setQuiet()
 
     if project == '':
         raise Exception('No project specified')
