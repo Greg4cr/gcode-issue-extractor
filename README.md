@@ -36,5 +36,5 @@ If you want to use this script on a server or an environment where windows canno
 Reporting Faults
 ------------------------
 
-This script was built quickly to retrieve some information on a particular project, and has not been extensively tested. If you encounter any issues, please file an issue, and I'll try to track it down.
+This script was built quickly to retrieve some information on a particular project, and has not been extensively tested. If you encounter any issues, please file a report, and I'll try to track it down.
 
