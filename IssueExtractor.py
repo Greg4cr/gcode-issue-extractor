@@ -192,7 +192,7 @@ class IssueExtractor():
         reporter = reportedBlock.find_element_by_tag_name("i").text
         # Reporting date is fields 3-5 of the text.
         openedParts = reportedBlock.text.strip().split(" ")
-        opened = openedParts[2]+" "+openedParts[3]+" "+openedParts[4]+" 00:00:01"
+        opened = openedParts[2]+" "+openedParts[3]+" "+openedParts[4]+" 23:59:01"
         openedTimeStamp=str(self.generateTimeStamp(opened))
 
         driver.quit()
@@ -235,7 +235,7 @@ class IssueExtractor():
         else:
             raise Exception("Unrecognized date: "+timeParts[0])
 
-        timetuple=(year, month, day, 0, 0, 1)
+        timetuple=(year, month, day, 23, 59, 1)
         return calendar.timegm(timetuple)
 
     # Write results to a CSV file
